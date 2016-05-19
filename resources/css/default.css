@@ -1,0 +1,51 @@
+/* PyRadio CSS Default */
+
+/* Window Styling */
+.PyRadio {
+	background: #383838;
+	color: white;
+
+	font-family: "Roboto",monospace;
+	font-size: 16px;
+}
+
+.NavigationBar {
+	background: blue;
+	color: white;
+}
+
+.MainWindow {
+	background: #383838;
+	color: white;
+}
+
+.ViewScene {
+	background: #383838;
+	color: white;
+}
+
+.OptionScene {
+	background: #383838;
+	color: white;
+}
+
+
+/* Widget Styles */
+.SongTitle {
+	font-family: "Roboto",monospace;
+	font-size: 22px;
+	color: white;
+}
+
+.VersionLabel, .StatusLabel {
+	color: white;
+	font-family: "Roboto",monospace;
+}
+
+.SearchBar {
+	font-family: "Roboto",monospace;
+	font-size: 16px;
+	font-style: monospace;
+	padding: 5px;
+	border-radius: 5px;
+}
