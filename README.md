@@ -23,8 +23,8 @@ Python Application for playing Youtube music in a playlist fashion.
 1. It will ask for portable python installation. Normally, just say no
 2. Choose your python destination (should be C:\\Python27\\Lib\\site-packages)
 3. *Important* Make sure to check these packages:
-	![Alt](http://imgur.com/CYifiaW "Title")
-4. If you don't want anything else, continue with the installation
+4. ![alt text](http://imgur.com/CYifiaW "Image of packages to download")
+5. If you don't want anything else, continue with the installation
 
 
 ### Linux:
