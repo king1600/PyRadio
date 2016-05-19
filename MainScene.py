@@ -144,7 +144,7 @@ class MainWindow(QFrame):
 			self.startStream)
 
 		surpressor = int(self.backend.info.data['Player']['vol_supp_ratio'])
-		time.sleep(0.3)
+		time.sleep(0.5)
 		self.backend.setVolume( self.currentVolume / surpressor / 100.0 )
 
 		self.isPlaying = True
