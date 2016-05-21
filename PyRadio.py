@@ -13,7 +13,7 @@ except:
 	if 'nt' in os.name:
 		update_command = "C:\\Python27\\Scripts\\pip install -r requirements.txt"
 	else:
-		update_command = "pip install -r requirements.txt"
+		update_command = "sudo apt-get install python-pyside && sudo pip2 install -I youtube-dl pafy bs4"
 	os.system(update_command)
 #############################
 

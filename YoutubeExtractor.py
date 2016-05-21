@@ -22,7 +22,12 @@ class YoutubeInfoExtractor(object):
 	def getStreamlink(self, video_id):
 		# basic and gdata false because no need for extra meta info
 		stream = pafy.new(video_id, basic=False, gdata=False)
-		return stream.getbestaudio().url_https
+
+		if 'nt' in os.name:
+			# Windows has better sound with webm streams
+			return stream.getbestaudio().url_https
+		else:
+			return stream.getbestaudio(preftype="m4a").url_https
 
 	def getInfo(self, video_id):
 		#returns string[] { title, thumbnail, stream_url }
