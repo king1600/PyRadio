@@ -74,3 +74,28 @@ class SearchBar(QLineEdit):
 class SearchButton(QPushButton):
 	def __init__(self,text=''):
 		super(SearchButton, self).__init__(text)
+
+class OptionLabel(QLabel):
+	def __init__(self,text=''):
+		super(OptionLabel, self).__init__(text)
+
+# Message Widgets
+
+class MessageBox:
+	def __init__(self):
+		self.msg = QMessageBox()
+
+	def showinfo(self, title, text):
+		self.showMessage(title, text, QMessageBox.Information)
+
+	def showwarning(self, title, text):
+		self.showMessage(title, text, QMessageBox.Warning)
+
+	def showerror(self, title, text):
+		self.showMessage(title, text, QMessageBox.Critical)
+
+	def showMessage(self, title, text, icon):
+		self.msg.setIcon(icon)
+		self.msg.setWindowTitle(title)
+		self.msg.setText(text)
+		self.msg.exec_()

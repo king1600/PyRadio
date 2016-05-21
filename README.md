@@ -33,3 +33,12 @@ Python Application for playing Youtube music in a playlist fashion.
 * GStreamer / Python bindings:
 	* should already have it, if not:
 	`sudo apt-get install gstreamer-1.0*`
+
+## Use & info
+
+* run PyRadio.py (or Main.py if you want)
+* it should automatically load the backup songs
+* to add your own list, copy it to the resource folder
+* to add custom css, copy it to resource/css folder
+* when adding a style/list select and apply from settings menu
+* volume surpressor is the ratio which the volume is lowered (higher = lower volume)

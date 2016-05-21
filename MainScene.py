@@ -24,14 +24,27 @@ class MainWindow(QFrame):
 
 		self.createWidgets()
 
+		# create settings
 		self.songs = []
 		self.queue_songs = []
 		self.currentVolume = 50
 		self.isLoading = False
 		self.isPlaying = False
+		self.isMute = False
+
+	# preload Settings
+
+	def loadSettings(self):
+		pass
+
+	# set Functions
 
 	def setBackend(self, bg):
 		self.backend = bg
+
+		# get last volume
+		self.currentVolume = int(self.backend.info.data['Player']['volume'])
+		self.volume.setValue(self.currentVolume)
 
 		self.newPicture.connect(self.setImage)
 
@@ -59,12 +72,15 @@ class MainWindow(QFrame):
 
 		self.search_bar = SearchBar()
 		self.search_btn = SearchButton("Search")
+		self.search_bar.returnPressed.connect(self.addToQueue)
+		self.search_btn.clicked.connect(self.addToQueue)
 
 		first_layer.addWidget(self.search_bar)
 		first_layer.addWidget(self.search_btn)
 
 		# Top layer
 
+		# buttons
 		self.start_btn = ImageButton()
 		self.back_btn = ImageButton()
 		self.skip_btn = ImageButton()
@@ -81,12 +97,17 @@ class MainWindow(QFrame):
 		top_layer.addWidget(self.start_btn)
 		top_layer.addWidget(self.skip_btn)
 
+		# volume
 		self.volume = VolumeSlider()
 		self.currentVolume = 50
+		self.volume.setRange(0,100)
+		self.volume.setPageStep(1)
 		self.volume.setValue(50)
+		self.volume.setMinimumWidth(80)
 		self.volume.valueChanged.connect(self.changeVolume)
 		self.volume_btn = ImageButton()
 		self.volume_btn.setImage("resources/pictures/vol_on.png",[24,24])
+		self.volume_btn.clicked.connect(self.changeMute)
 
 		top_layer.addStretch(1)
 		top_layer.addWidget(self.volume_btn)
@@ -94,7 +115,7 @@ class MainWindow(QFrame):
 
 		# the Rest
 
-		self.title = SongTitle("Hello")
+		self.title = SongTitle("Initializing...")
 		self.song_image = ImageButton()
 		self.song_image.setAlignment(Qt.AlignCenter)
 
@@ -108,6 +129,7 @@ class MainWindow(QFrame):
 	# Stream actions
 
 	def newStream(self):
+		# For rewind
 		if self.songs != []:
 			if self.backend.place < len(self.songs):
 				info = self.songs[self.backend.place]
@@ -115,6 +137,7 @@ class MainWindow(QFrame):
 				self.setupStream(info)
 				return True
 
+		# For songs in queue
 		if self.queue_songs != []:
 			info = self.queue_songs[-1]
 			self.songs.append(info)
@@ -124,6 +147,7 @@ class MainWindow(QFrame):
 			self.setupStream(info)
 			return True
 
+		# For normal operations
 		else:
 			url = self.backend.getNextSong()
 			info = self.backend.yi.getInfo(url)
@@ -133,19 +157,32 @@ class MainWindow(QFrame):
 
 
 	def setupStream(self, info):
+		if self.isLoading:
+			return False
+
 		self.isLoading = True
 
+		print "Playing: " + str(info[0])
+		print "YoutubeID: " + str(info[1].split('/')[-2])
+
+		# Set info
 		self.title._setText( info[0] )
-		self.newPicture.emit( info[1] )
+		if bool(self.backend.info.data['Player']['getimage']):
+			self.newPicture.emit( info[1] )
 		self.backend.stream( info[-1] )
 
-		self.backend.play()
+		# When stream is done, move on
+		
 		self.backend.pipeline.connect('about-to-finish',
 			self.startStream)
 
-		surpressor = int(self.backend.info.data['Player']['vol_supp_ratio'])
-		time.sleep(0.5)
-		self.backend.setVolume( self.currentVolume / surpressor / 100.0 )
+		# Get volume suppressor
+		surpressor = float(self.backend.info.data['Player']['vol_supp_ratio'])*1.0
+		
+		# Keep setting stream volume (Bug with GStreamer)
+		for i in range(10):
+			self.backend.setVolume( self.currentVolume / surpressor / 100.0 )
+			time.sleep(0.1)
 
 		self.isPlaying = True
 		self.isLoading = False
@@ -155,8 +192,11 @@ class MainWindow(QFrame):
 		self.startThread(self.newStream)
 
 	def rewind(self):
-		if self.isLoading: return False
+		# Dont Spam
+		if self.isLoading:
+			return False
 
+		# Rewind array
 		if self.backend.place != -1:
 			if self.backend.place == 1:
 				self.backend.place = 0
@@ -166,17 +206,34 @@ class MainWindow(QFrame):
 		self.startStream()
 
 	def forward(self):
-		if self.isLoading: return False
+		# Dont spam
+		if self.isLoading:
+			return False
 
 		self.startStream()
 
 	# update functions
 
 	def changeVolume(self, val):
-		surpressor = int(self.backend.info.data['Player']['vol_supp_ratio'])
-		self.currentVolume = val
-		self.backend.info.changeValue('Player','volume',self.currentVolume)
-		self.backend.setVolume( val / surpressor / 100.0 )
+		# supress volume because its originally loud
+		surpressor = float(self.backend.info.data['Player']['vol_supp_ratio'])*1.0
+
+		if not self.isMute:
+			self.currentVolume = val
+			self.backend.info.changeValue('Player','volume',self.currentVolume)
+			self.backend.setVolume( val / surpressor / 100.0 )
+
+	def changeMute(self):
+		if self.isMute:
+			self.isMute = False
+			self.volume_btn.setImage("resources/pictures/vol_on.png",[24,24])
+
+			surpressor = float(self.backend.info.data['Player']['vol_supp_ratio'])*1.0
+			self.backend.setVolume( self.currentVolume / surpressor / 100.0 )
+		else:
+			self.isMute = True
+			self.volume_btn.setImage("resources/pictures/vol_off.png",[24,24])
+			self.backend.setVolume(0.0)
 
 	def changeState(self):
 		if self.isPlaying:
@@ -193,3 +250,43 @@ class MainWindow(QFrame):
 				self.isPlaying = True
 			except:
 				pass
+
+	# Playlist functions
+
+	def addToQueue(self, *args):
+		self.startThread(self.QueueInfo)
+
+	def QueueInfo(self):
+		text = str(self.search_bar.text())
+		self.search_bar.clear()
+
+		# No whitespace / empty search
+		if text == '' or text.isspace():
+			return False
+
+		# Get info and add to queue
+		self.title._setText("Loading search...")
+		video_id = self.backend.yi.getSearchResults( text )
+		info = self.backend.yi.getInfo( video_id )
+		self.queue_songs.append( info )
+
+		# Get all video ids for reference
+		all_ids = []
+		for x in self.backend.urls:
+			# Get only video id
+			_id = x
+			if 'watch?v' in _id:
+				_id = _id.split('watch?v=')[-1]
+			if '&' in _id:
+				_id = _id.split('&')[0]
+			all_ids.append(_id)
+
+		# If not already in list, add to database
+		if video_id not in all_ids:
+			# Add to backup file
+			path = self.backend.info.data['Player']['backup']
+			with open(os.path.join('resources',path), 'a') as f:
+				f.write("\nhttps://www.youtube.com/watch?v=" + video_id)
+
+		# Start
+		self.startThread(self.newStream)

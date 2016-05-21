@@ -1,5 +1,5 @@
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PySide.QtGui import *
+from PySide.QtCore import *
 
 from Widgets import *
 
@@ -24,6 +24,7 @@ class ViewScene(QFrame):
 		self.createWidgets()
 
 		self.done = False
+		self.isSearching = False
 
 	def setBackend(self, bg):
 		self.backend = bg
@@ -41,15 +42,15 @@ class ViewScene(QFrame):
 		self.tree.setColumnWidth(1,90)
 		self.tree.setMinimumHeight(340)
 
-		self.add_btn = QPushButton("Add link")
 		self.remove_btn = QPushButton("Remove link")
-		self.clear_btn = QPushButton("Clear all")
+		self.refresh_btn = QPushButton("Refresh list")
+
+		self.refresh_btn.clicked.connect(self.initFetcher)
 
 		btn_layout = QHBoxLayout()
 
-		btn_layout.addWidget(self.add_btn)
+		btn_layout.addWidget(self.refresh_btn)
 		btn_layout.addWidget(self.remove_btn)
-		btn_layout.addWidget(self.clear_btn)
 		btn_layout.addStretch(1)
 
 		self.layout.addWidget(self.tree)
@@ -59,38 +60,47 @@ class ViewScene(QFrame):
 		self.fetched = 0
 
 	def _disable(self):
-		self.add_btn.setEnabled(False)
+		self.refresh_btn.setEnabled(False)
 		self.remove_btn.setEnabled(False)
-		self.clear_btn.setEnabled(False)
 	def _enable(self):
-		self.add_btn.setEnabled(True)
+		self.refresh_btn.setEnabled(True)
 		self.remove_btn.setEnabled(True)
-		self.clear_btn.setEnabled(True)
 
 	def chunks(self, l, n):
 		for i in range(0, len(l), n):
 			yield l[i:i+n]
 
 	def initFetcher(self):
+		if self.isSearching:
+			return False
 		self.startThread(self.startFetcher)
 
 	def startFetcher(self):
+		self.isSearching = True
 		self.done = False
 		self._disable()
 		self.win.status.emit("Fetching URL info...")
 		self.fetched = 0
+		self.tree.clear()
+		self.tree.setHorizontalHeaderLabels(['Title','Video ID'])
 
 		# Get Url list
-		file_path = os.path.join('resources',
-			self.backend.info.data['Player']['backup'])
+		file_name = self.backend.info.data['Player']['backup']
+		file_path = os.path.join('resources', file_name)
 
 		# Read Url list
 		with open(file_path, 'r') as f:
 			self.urls = f.read().splitlines()
 		for x in self.urls:
 			place = self.urls.index(x)
+
+			# remove non-youtube links
 			if 'youtu' not in x:
-				self.urls.remove(x)
+				self.urls.pop( place )
+
+			# remove empty lines
+			if x == '':
+				self.urls.pop( place )
 
 		# Get URLS to fetch
 		self.fetchlist = []
@@ -113,6 +123,7 @@ class ViewScene(QFrame):
 		self.win.status.emit("Finished Fetching")
 		self._enable()
 		self.done = True
+		self.isSearching = False
 		self.final_info = self.urls
 		self.backend.urls = self.final_info
 
@@ -131,6 +142,7 @@ class ViewScene(QFrame):
 				# Get Title
 				_title = self.backend.yi.getTitle(_id)
 
+				# Add to tree
 				self.tree.setItem( x[0], 0, QTableWidgetItem( str(_title) ))
 				self.tree.setItem( x[0], 1, QTableWidgetItem( str(_id) ))
 

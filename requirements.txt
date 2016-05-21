@@ -1,0 +1,4 @@
+PySide
+youtube-dl
+pafy
+bs4

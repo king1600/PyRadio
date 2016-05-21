@@ -1,3 +1,22 @@
+import sys
+import os
+import subprocess
+import time
+import threading
+
+# Check for requirements ###
+try:
+	import PySide
+	import pafy
+	import bs4
+except:
+	if 'nt' in os.name:
+		update_command = "C:\\Python27\\Scripts\\pip install -r requirements.txt"
+	else:
+		update_command = "pip install -r requirements.txt"
+	os.system(update_command)
+#############################
+
 from PySide.QtGui import *
 from PySide.QtCore import *
 
@@ -6,12 +25,6 @@ from DBScene import ViewScene
 from OptionScene import OptionScene
 from Backend import Backend
 from Widgets import *
-
-import sys
-import os
-import subprocess
-import time
-import threading
 
 WIDTH = 640
 HEIGHT = 500
@@ -68,43 +81,52 @@ class PyRadio(QWidget):
 		self._createWindows()
 		self._createBottom()
 
+		# Get application
+		global app
+		self.app = app
+
+		# Handle Close event
 		self.connect(self, SIGNAL('triggered()'), self.closeEvent)
 
 	def closeEvent(self, event):
-		global app
-		
-		#save all data
+		# save all data
 		self.backend.info.commit()
 		self.backend.stop()
 
 		self.destroy()
-		app.quit()
+		self.app.quit()
 
 	def _getSettings(self):
 		self.backend = Backend(self)
 
+		# Load Styling
 		CSS = self.backend.info.data['Player']['style']
 		with open( os.path.join('resources','css',CSS + '.css'), 'r') as f:
 			self.setStyleSheet( f.read() )
 
+		# Get version
 		with open("VERSION.txt",'r') as f:
 			self.version = f.read()
 
 	def _createWindows(self):
+		# Create Windows
 		self.mainwin = MainWindow(self)
 		self.viewscene = ViewScene(self)
 		self.optscene = OptionScene(self)
 
+		# For organization
 		self.views = [self.mainwin, self.viewscene, self.optscene]
 
 		self.createNavigationBar()
 
+		# Display home screen first
 		for frame in self.views:
 			if frame == self.mainwin:
 				frame.show()
 			else:
 				frame.hide()
 
+			# allow windows to communicate with backend
 			frame.setBackend(self.backend)
 			self.layout.addWidget(frame)
 
@@ -142,6 +164,7 @@ class PyRadio(QWidget):
 	### Actions ###
 
 	def changeWindow(self, win=None):
+		# Window Switcher
 		if win == "home":
 			self.mainwin.show()
 			self.viewscene.hide()
@@ -158,6 +181,7 @@ class PyRadio(QWidget):
 			self.optscene.show()
 
 	def visit_github(self, *args):
+		# Cross-platform URL Opener
 		link = "https://github.com/king1600/PyRadio"
 		if 'nt' in os.name:
 			cmd = "start " + link
@@ -166,24 +190,33 @@ class PyRadio(QWidget):
 		subprocess.call(cmd,shell=True)
 
 	def updateStatus(self, message):
+		# Custom QStatus
 		msg = str(message)
 		self.status_bar.setText(msg)
 
 	def initStart(self):
+		# start a daemon Thread
 		t = threading.Thread(target=self._Start)
 		t.daemon = True
 		t.start()
 
 	def _Start(self):
+		# Seperate thread to start services
+
 		self.backend.initServices()
+
+		# wait for GStreamer to init
 		while not self.backend.done:
 			time.sleep(0.1)
 		self.viewscene.initFetcher()
 
+		# Wait for list to be scanned
 		while not self.viewscene.done:
 			time.sleep(0.1)
 
+		# start playing music
 		self.mainwin.startStream()
+
 		self.status.emit("Ready!")
 
 if __name__ == '__main__':

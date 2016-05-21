@@ -2,6 +2,8 @@ import urllib
 import json
 import pafy
 import unicodedata
+import bs4
+import os
 
 class YoutubeInfoExtractor(object):
 
@@ -18,8 +20,9 @@ class YoutubeInfoExtractor(object):
 		return self.getMetaData(video_id)['thumbnail_url']
 
 	def getStreamlink(self, video_id):
+		# basic and gdata false because no need for extra meta info
 		stream = pafy.new(video_id, basic=False, gdata=False)
-		return stream.getbestaudio(preftype='m4a').url_https
+		return stream.getbestaudio().url_https
 
 	def getInfo(self, video_id):
 		#returns string[] { title, thumbnail, stream_url }
@@ -41,7 +44,7 @@ class YoutubeInfoExtractor(object):
 		data = json.loads( urllib.urlopen(link).read() )
 		return data
 
-	def getSearchResults(self, query, byID=True):
+	def getSearchResults(self, query, results=1):
 		# Setup  Query
 		if ' ' in query:
 			query = query.replace(' ','_')
@@ -57,10 +60,17 @@ class YoutubeInfoExtractor(object):
 
 		#get results
 		div = [d for d in soup.find_all('div') if d.has_attr('class') and 'yt-lockup-dismissable' in d['class'] ]
-		results = []
+		res = []
 
 		for d in div:
 			image = d.find_all('img')[0]
 			data  = image['src'] if not image.has_attr('data-thumb') else image['data-thumb']
 			video_id = data.split('/')[-2]
-			results.append(video_id)
+
+			# Single results
+			if results <= 1:
+				return video_id
+
+			# Multiple results
+			res.append(video_id)
+		return res
