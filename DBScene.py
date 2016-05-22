@@ -42,7 +42,7 @@ class ViewScene(QFrame):
 		self.tree.setEditTriggers(QAbstractItemView.NoEditTriggers)
 		self.tree.setColumnWidth(0,460)
 		self.tree.setColumnWidth(1,90)
-		self.tree.setMinimumHeight(340)
+		self.tree.setMinimumHeight(400)
 
 		self.refresh_btn = QPushButton("Refresh list")
 

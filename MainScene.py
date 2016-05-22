@@ -28,14 +28,10 @@ class MainWindow(QFrame):
 		self.songs = []
 		self.queue_songs = []
 		self.currentVolume = 50
+		self.currentSong = ""
 		self.isLoading = False
 		self.isPlaying = False
 		self.isMute = False
-
-	# preload Settings
-
-	def loadSettings(self):
-		pass
 
 	# set Functions
 
@@ -97,6 +93,14 @@ class MainWindow(QFrame):
 		top_layer.addWidget(self.start_btn)
 		top_layer.addWidget(self.skip_btn)
 
+		# remove button
+
+		self.remove_btn = SearchButton("Remove Song")
+		self.remove_btn.clicked.connect(self.removeSong)
+		remove_layout = QHBoxLayout()
+		remove_layout.addStretch(1)
+		remove_layout.addWidget(self.remove_btn)
+
 		# volume
 		self.volume = VolumeSlider()
 		self.currentVolume = 50
@@ -123,6 +127,7 @@ class MainWindow(QFrame):
 
 		self.layout.addLayout(first_layer)
 		self.layout.addLayout(top_layer)
+		self.layout.addLayout(remove_layout)
 		self.layout.addWidget(self.title)
 		self.layout.addWidget(self.song_image)
 
@@ -161,6 +166,8 @@ class MainWindow(QFrame):
 			return False
 
 		self.isLoading = True
+
+		self.currentSong = info[1].split('/')[-2]
 
 		# Set info
 		self.title._setText( info[0] )
@@ -287,3 +294,40 @@ class MainWindow(QFrame):
 
 		# Start
 		self.startThread(self.newStream)
+
+	def removeSong(self, *args):
+		self.title._setText("Removing Song...")
+		
+		# Get current list
+		path = self.backend.info.data['Player']['backup']
+		with open( os.path.join('resources',path), 'r' ) as f:
+			current_list = f.read().splitlines()
+		for x in current_list:
+			if x == '':
+				current_list.pop(current_list.index(x))
+
+		# Find song and remove it
+		for song in current_list:
+			# Get only their id
+			_id = song
+			if 'watch?v' in _id:
+				_id = _id.split('watch?v=')[-1]
+			if '&' in _id:
+				_id = _id.split('&')[0]
+
+			# If Video_id matches, remove song
+			if _id == self.currentSong:
+				current_list.pop( current_list.index(song) )
+
+		# Rewrite list
+		with open( os.path.join('resources',path), 'w' ) as f:
+			for song in current_list:
+				if song == current_list[-1]:
+					f.write(song)
+				else:
+					f.write(song + '\n')
+
+		# Remove from list and Goto next song
+		self.songs.pop(-1)
+		self.startThread(self.newStream)
+			

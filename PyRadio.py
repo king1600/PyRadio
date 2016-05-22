@@ -27,7 +27,7 @@ from Backend import Backend
 from Widgets import *
 
 WIDTH = 640
-HEIGHT = 500
+HEIGHT = 540
 
 #Globalize/Declare application
 app = None
