@@ -42,7 +42,6 @@ class ViewScene(QFrame):
 		self.tree.setColumnWidth(1,90)
 		self.tree.setMinimumHeight(340)
 
-		self.remove_btn = QPushButton("Remove link")
 		self.refresh_btn = QPushButton("Refresh list")
 
 		self.refresh_btn.clicked.connect(self.initFetcher)
@@ -50,7 +49,6 @@ class ViewScene(QFrame):
 		btn_layout = QHBoxLayout()
 
 		btn_layout.addWidget(self.refresh_btn)
-		btn_layout.addWidget(self.remove_btn)
 		btn_layout.addStretch(1)
 
 		self.layout.addWidget(self.tree)
@@ -61,10 +59,8 @@ class ViewScene(QFrame):
 
 	def _disable(self):
 		self.refresh_btn.setEnabled(False)
-		self.remove_btn.setEnabled(False)
 	def _enable(self):
 		self.refresh_btn.setEnabled(True)
-		self.remove_btn.setEnabled(True)
 
 	def chunks(self, l, n):
 		for i in range(0, len(l), n):
