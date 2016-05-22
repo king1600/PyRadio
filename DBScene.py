@@ -12,6 +12,8 @@ import unicodedata
 UPDATE_THREADS = 5
 
 class ViewScene(QFrame):
+	newTreedata = Signal(tuple)
+
 	def __init__(self, win):
 		super(ViewScene, self).__init__(win)
 		self.win = win
@@ -56,6 +58,8 @@ class ViewScene(QFrame):
 
 		self.final_info = []
 		self.fetched = 0
+		self.running = True
+		self.newTreedata.connect(self.addInfo)
 
 	def _disable(self):
 		self.refresh_btn.setEnabled(False)
@@ -72,6 +76,7 @@ class ViewScene(QFrame):
 		self.startThread(self.startFetcher)
 
 	def startFetcher(self):
+		global UPDATE_THREADS
 		self.isSearching = True
 		self.done = False
 		self._disable()
@@ -98,6 +103,10 @@ class ViewScene(QFrame):
 			if x == '':
 				self.urls.pop( place )
 
+		# put list in backend
+		self.final_info = self.urls
+		self.backend.urls = self.final_info
+
 		# Get URLS to fetch
 		self.fetchlist = []
 		for x in range(len(self.urls)-1):
@@ -106,6 +115,9 @@ class ViewScene(QFrame):
 
 		# Populate Table
 		self.tree.setRowCount(len(self.fetchlist))
+
+		if len(self.fetchlist) > 200:
+			UPDATE_THREADS = 300
 
 		# Split data to multiple threads for faster loading
 		thread_list = list(self.chunks(self.fetchlist, UPDATE_THREADS))
@@ -135,14 +147,27 @@ class ViewScene(QFrame):
 				if '&' in _id:
 					_id = _id.split('&')[0]
 
+				# make sure program is still on
+				if not self.running:
+					break
+
 				# Get Title
 				_title = self.backend.yi.getTitle(_id)
 
 				# Add to tree
-				self.tree.setItem( x[0], 0, QTableWidgetItem( str(_title) ))
-				self.tree.setItem( x[0], 1, QTableWidgetItem( str(_id) ))
+				#self.tree.setItem( x[0], 0, QTableWidgetItem( str(_title) ))
+				#self.tree.setItem( x[0], 1, QTableWidgetItem( str(_id) ))
+				self.newTreedata.emit((x[0], _title, _id))
 
 			except Exception as e:
 				print str(e)
 
+			if not self.running:
+				break
+
 		self.fetched += 1
+
+	def addInfo(self, info):
+		# (x[0], _title, _id)
+		self.tree.setItem( info[0], 0, QTableWidgetItem( str(info[1]) ))
+		self.tree.setItem( info[0], 1, QTableWidgetItem( str(info[2]) ))

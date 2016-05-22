@@ -13,7 +13,7 @@ except:
 	if 'nt' in os.name:
 		update_command = "C:\\Python27\\Scripts\\pip install -r requirements.txt"
 	else:
-		update_command = "sudo apt-get install python-pyside && sudo pip2 install -I youtube-dl pafy bs4"
+		update_command = "pip install -r requirements.txt"
 	os.system(update_command)
 #############################
 
@@ -92,6 +92,13 @@ class PyRadio(QWidget):
 		# save all data
 		self.backend.info.commit()
 		self.backend.stop()
+
+		# delete resources
+
+		del self.mainwin
+		del self.viewscene
+		del self.backend
+		del self.optscene
 
 		self.destroy()
 		self.app.quit()
@@ -210,9 +217,11 @@ class PyRadio(QWidget):
 			time.sleep(0.1)
 		self.viewscene.initFetcher()
 
-		# Wait for list to be scanned
-		while not self.viewscene.done:
-			time.sleep(0.1)
+		''' Not needed '''
+		# Wait for list to be scanned 
+		#while not self.viewscene.done:
+		#	time.sleep(0.1)
+		time.sleep(0.5)
 
 		# start playing music
 		self.mainwin.startStream()
