@@ -7,9 +7,6 @@ current version: 0.5.0
 #### Windows:
 * Download Python 2.7:
 	* 32/64 bit: [Python Download](https://www.python.org/ftp/python/2.7.11/python-2.7.11.msi)
-* Download GStreamer:
-	* 32 bit: [32bit Download](https://gstreamer.freedesktop.org/data/pkg/windows/1.8.1/gstreamer-1.0-x86-1.8.1.msi)
-	* 64 bit: [64bit Download](https://gstreamer.freedesktop.org/data/pkg/windows/1.8.1/gstreamer-1.0-x86_64-1.8.1.msi)
 * Download GStreamer bindings: 
 	* rev7: [Download](https://sourceforge.net/projects/pygobjectwin32/files/pygi-aio-3.18.2_rev7-setup.exe/download)
 
