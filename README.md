@@ -1,12 +1,6 @@
 # PyRadio
 Python Application for playing Youtube music in a playlist fashion.
-
-#### Project only started !
-
-#### Features to be added
-* Download Songs
-* Save Unnecesary http fetching
-* UI Improvements
+current version: 0.5.0
 
 ## Installation
 
@@ -42,3 +36,29 @@ Python Application for playing Youtube music in a playlist fashion.
 * to add custom css, copy it to resource/css folder
 * when adding a style/list select and apply from settings menu
 * volume surpressor is the ratio which the volume is lowered (higher = lower volume)
+
+## Bug Fixes
+
+1. Problem: Initializing causes GUI to lock
+
+Solution: launch init from signal -> thread
+
+2. Problem: DBScene widgets lock on refresh
+
+Solution: set isSearching bool for no refresh overlap
+
+3. Problem: Next song playing over original
+
+Solution: set isLoading bool for no stream overlap
+
+4. Problem: stream wouldn't init until list refresh complete
+
+Solution: wait 0.5s and get list rather than wait for refresh complete
+
+5. Problem: GUI hangs when refreshing big list
+
+Solution: set Tree items from tuple signal
+
+6. Problem: Slow Database info fetching
+
+Solution: chunk list for multi-threaded fetching
