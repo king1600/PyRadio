@@ -162,9 +162,6 @@ class MainWindow(QFrame):
 
 		self.isLoading = True
 
-		print "Playing: " + str(info[0])
-		print "YoutubeID: " + str(info[1].split('/')[-2])
-
 		# Set info
 		self.title._setText( info[0] )
 		if bool(self.backend.info.data['Player']['getimage']):

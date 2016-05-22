@@ -152,7 +152,7 @@ class ViewScene(QFrame):
 					break
 
 				# Get Title
-				_title = self.backend.yi.getTitle(_id)
+				_title = self.backend.yi.getTitle(_id,_filter=True)
 
 				# Add to tree
 				#self.tree.setItem( x[0], 0, QTableWidgetItem( str(_title) ))
